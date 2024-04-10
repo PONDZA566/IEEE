@@ -1,7 +1,0 @@
-.box {
-    width: 500px; /* 5 meters */
-    height: 500px; /* 5 meters */
-    background-color: lightblue;
-    border: 2px solid black;
-    cursor: pointer;
-}
