@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css"> <!-- Link to your CSS file -->
 </head>
 <body>
     <div class="login-container">
@@ -21,10 +21,14 @@
             <button type="submit">Login</button>
         </form>
     </div>
-    <div class="box-container">
-        <div id="box" class="box"></div>
-        <div id="coordinates" class="coordinates"></div>
+
+    <div class="image-container">
+        <canvas id="imageCanvas" width="500" height="500"></canvas>
+        <img id="image" src="testpic.jpg" alt="Image"> <!-- Remove the 'hidden' class from the img tag -->
+        <div id="coordinates"></div> <!-- Coordinates display -->
+        <button id="clearButton" style="display: none;">UNMARK</button>
     </div>
-    <script src="script.js"></script>
+
+    <script src="script.js" defer></script> <!-- Link to your JavaScript file -->
 </body>
 </html>
