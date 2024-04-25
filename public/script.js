@@ -4,16 +4,20 @@ document.addEventListener("DOMContentLoaded", function() {
     var image = document.getElementById('image'); // Get the image element
     var coordinates = document.getElementById("coordinates");
     var clearButton = document.getElementById("clearButton");
+    var logoutButton = document.getElementById("logoutButton");
 
     // Define the size of the canvas and the grid
     var canvasWidth = canvas.width;
     var canvasHeight = canvas.height;
     var columns = 4;
     var rows = 4;
-    
+
     // Variable to store the coordinates of the clicked point
     var clickedX = -1;
     var clickedY = -1;
+    
+    // Variable to store the reference of the currently clicked tile
+    var currentTile = null;
 
     // Function to draw the gridlines
     function drawGrid() {
@@ -56,6 +60,7 @@ document.addEventListener("DOMContentLoaded", function() {
     hideGrid();
     hideImage();
     hideClearButton();
+    hideLogoutButton();
 
     // Function to hide the gridlines
     function hideGrid() {
@@ -99,21 +104,13 @@ document.addEventListener("DOMContentLoaded", function() {
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
         showGrid(); // Redraw the grid
         drawCircle(clickedX, clickedY); // Draw the circle at the clicked coordinates
-
+    
         // Get the clicked tile
         var cellWidth = canvasWidth / columns;
         var cellHeight = canvasHeight / rows;
-        var column = Math.floor(clickedX / cellWidth);
-        var row = Math.floor(clickedY / cellHeight);
-        var tile = document.querySelector('.tile[data-row="' + row + '"][data-column="' + column + '"]');
-        // Toggle blink class
-        tile.classList.toggle('blink');
-        // Reset blinking after a short delay
-        setTimeout(function() {
-            tile.classList.remove('blink');
-        }, 500);
+        
     }
-
+    
     // Attach click event listener to the canvas
     canvas.addEventListener("click", showCoordinates);
 
@@ -123,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function() {
         event.preventDefault(); // Prevent form submission
         var username = document.getElementById("username").value;
         var password = document.getElementById("password").value;
-        
+
         // Here you can add further validation or submit the form data to a server
         if (authenticate(username, password)) {
             hideLoginForm(); // Call function to hide the login form
@@ -131,6 +128,7 @@ document.addEventListener("DOMContentLoaded", function() {
             showImage(); // Call function to show the image
             showWelcomeMessage(username); // Call function to display the welcome message
             showClearButton(); // Call function to show the clear button
+            showLogoutButton(); // Call function to show the logout button
         } else {
             alert("Invalid username or password. Please try again.");
         }
@@ -165,6 +163,21 @@ document.addEventListener("DOMContentLoaded", function() {
         clearButton.style.display = "block";
     }
 
-    // Attach click event listener to the clear button
+    // Function to hide the logout button
+    function hideLogoutButton() {
+        logoutButton.style.display = "none";
+    }
+
+    // Function to show the logout button
+    function showLogoutButton() {
+        logoutButton.style.display = "block";
+    }
+    
     clearButton.addEventListener("click", clearCircle);
+    logoutButton.addEventListener("click", logout);
+
+    // Function to log out
+    function logout() {
+        window.location.href = "index.html";
+    }
 });
