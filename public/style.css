@@ -103,23 +103,16 @@ button:hover {
 
 }
 
-.tile {
-    width: calc(100% / 4);
-    height: calc(100% / 4);
-    background-color: #fff;
+#logoutButton {
+    display: none; /* Hide the logout button by default */
     position: absolute;
-    border: 1px solid #000;
+    top: 110px; /* Adjust the top position */
+    left: 550px; /* Adjust the right position */
+    width: 150px; /* Set the width */
+    height: 40px; /* Set the height */
 }
 
-.blink {
-    animation: blink-animation 0.5s infinite alternate;
-}
-
-@keyframes blink-animation {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
+/* Style for the logout button on hover */
+#logoutButton:hover {
+    background-color: #5b2dc6; /* Darker red background color on hover */
 }
