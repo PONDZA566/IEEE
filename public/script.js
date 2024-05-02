@@ -1,3 +1,14 @@
+function showWelcomeMessage(username) {
+    var welcomeMessage = document.createElement('div');
+    welcomeMessage.textContent = "Welcome " + username;
+    welcomeMessage.style.position = "absolute";
+    welcomeMessage.style.top = "20px";
+    welcomeMessage.style.left = "50%";
+    welcomeMessage.style.transform = "translateX(-50%)";
+    welcomeMessage.style.fontSize = "24px";
+    document.body.appendChild(welcomeMessage);
+}
+
 document.addEventListener("DOMContentLoaded", function() {
     var canvas = document.getElementById('imageCanvas');
     var ctx = canvas.getContext('2d');
@@ -5,6 +16,10 @@ document.addEventListener("DOMContentLoaded", function() {
     var coordinates = document.getElementById("coordinates");
     var clearButton = document.getElementById("clearButton");
     var logoutButton = document.getElementById("logoutButton");
+    var sendButton = document.getElementById("sendButton");
+
+    // Initially hide the send button
+    sendButton.style.display = "none";
 
     // Define the size of the canvas and the grid
     var canvasWidth = canvas.width;
@@ -15,9 +30,6 @@ document.addEventListener("DOMContentLoaded", function() {
     // Variable to store the coordinates of the clicked point
     var clickedX = -1;
     var clickedY = -1;
-    
-    // Variable to store the reference of the currently clicked tile
-    var currentTile = null;
 
     // Function to draw the gridlines
     function drawGrid() {
@@ -82,18 +94,6 @@ document.addEventListener("DOMContentLoaded", function() {
         image.style.display = "block";
     }
 
-    // Function to display the welcome message
-    function showWelcomeMessage(username) {
-        var welcomeMessage = document.createElement('div');
-        welcomeMessage.textContent = "Welcome " + username;
-        welcomeMessage.style.position = "absolute";
-        welcomeMessage.style.top = "20px";
-        welcomeMessage.style.left = "50%";
-        welcomeMessage.style.transform = "translateX(-50%)";
-        welcomeMessage.style.fontSize = "24px";
-        document.body.appendChild(welcomeMessage);
-    }
-
     // Function to display coordinates
     function showCoordinates(event) {
         var rect = canvas.getBoundingClientRect();
@@ -104,13 +104,11 @@ document.addEventListener("DOMContentLoaded", function() {
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
         showGrid(); // Redraw the grid
         drawCircle(clickedX, clickedY); // Draw the circle at the clicked coordinates
-    
-        // Get the clicked tile
-        var cellWidth = canvasWidth / columns;
-        var cellHeight = canvasHeight / rows;
-        
+
+        // Send coordinates to the server
+        sendDataToServer(clickedX, clickedY);
     }
-    
+
     // Attach click event listener to the canvas
     canvas.addEventListener("click", showCoordinates);
 
@@ -129,6 +127,7 @@ document.addEventListener("DOMContentLoaded", function() {
             showWelcomeMessage(username); // Call function to display the welcome message
             showClearButton(); // Call function to show the clear button
             showLogoutButton(); // Call function to show the logout button
+            showSendButton(); // Call function to show the send button
         } else {
             alert("Invalid username or password. Please try again.");
         }
@@ -172,12 +171,49 @@ document.addEventListener("DOMContentLoaded", function() {
     function showLogoutButton() {
         logoutButton.style.display = "block";
     }
-    
+
+    // Function to show the send button
+    function showSendButton() {
+        sendButton.style.display = "block";
+    }
+
     clearButton.addEventListener("click", clearCircle);
-    logoutButton.addEventListener("click", logout);
 
     // Function to log out
     function logout() {
         window.location.href = "index.html";
     }
+
+    logoutButton.addEventListener("click", logout);
+
+    // Function to send data to the server
+    // Function to send data to the server
+function sendDataToServer(x, y) {
+    // Get the current date in yyyy-mm-dd format
+    var currentDate = new Date();
+    var year = currentDate.getFullYear();
+    var month = ('0' + (currentDate.getMonth() + 1)).slice(-2); // Adding 1 because getMonth() returns month index starting from 0
+    var day = ('0' + currentDate.getDate()).slice(-2);
+    var dateOnly = year + '-' + month + '-' + day;
+
+    // Send HTTP POST request to the server
+    fetch('/store-coordinates', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ x: x, y: y, date: dateOnly }) // Include only date in the request body
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Coordinates sent successfully');
+        } else {
+            console.error('Failed to send coordinates');
+        }
+    })
+    .catch(error => {
+        console.error('Error sending coordinates:', error);
+    });
+}
+
 });

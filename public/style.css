@@ -103,6 +103,22 @@ button:hover {
 
 }
 
+#sendButton {
+    display: none; /* Hide the logout button by default */
+    position: absolute;
+    top: 170px; /* Adjust the top position */
+    left: 550px; /* Adjust the right position */
+    width: 150px; /* Set the width */
+    height: 40px; /* Set the height */
+}
+
+/* Style for the logout button on hover */
+#sendButton:hover {
+    background-color: #5b2dc6; /* Darker red background color on hover */
+}
+
+
+
 #logoutButton {
     display: none; /* Hide the logout button by default */
     position: absolute;
@@ -116,3 +132,6 @@ button:hover {
 #logoutButton:hover {
     background-color: #5b2dc6; /* Darker red background color on hover */
 }
+
+
+
