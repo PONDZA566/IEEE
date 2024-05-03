@@ -128,9 +128,18 @@ document.addEventListener("DOMContentLoaded", function() {
             showClearButton(); // Call function to show the clear button
             showLogoutButton(); // Call function to show the logout button
             showSendButton(); // Call function to show the send button
+            showGoogleSheetsButton(); // Call function to show the Google Sheets button
         } else {
             alert("Invalid username or password. Please try again.");
         }
+    });
+
+    googleSheetsButton.addEventListener("click", function() {
+        // Define your Google Sheets URL
+        var googleSheetsURL = "https://docs.google.com/spreadsheets/d/175TPRTJi41n7FJHvb_5cejFTJgudx-Wm11284OL_v2A/edit#gid=0";
+        
+        // Open the Google Sheets link in a new tab/window
+        window.open(googleSheetsURL, "_blank");
     });
 
     // Authentication function (replace with your actual authentication logic)
@@ -175,6 +184,11 @@ document.addEventListener("DOMContentLoaded", function() {
     // Function to show the send button
     function showSendButton() {
         sendButton.style.display = "block";
+    }
+
+    // Function to show the Google Sheets button
+    function showGoogleSheetsButton() {
+        googleSheetsButton.style.display = "block";
     }
 
     clearButton.addEventListener("click", clearCircle);
