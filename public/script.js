@@ -200,8 +200,44 @@ document.addEventListener("DOMContentLoaded", function() {
 
     logoutButton.addEventListener("click", logout);
 
-    // Function to send data to the server
-    // Function to send data to the server
+// MQTT integration
+ const mqtt = require('mqtt');
+
+ // MQTT broker connection options
+ const brokerUrl = 'mqtt://test.mosquitto.org:1883'; // Update with your MQTT broker URL
+ const options = {
+     clientId: 'angkaewone', // Client ID
+     clean: true, // Clean session
+     connectTimeout: 4000, // Timeout in milliseconds
+ };
+
+ // Connect to MQTT broker
+ const client = mqtt.connect(brokerUrl, options);
+
+ // MQTT connection event handlers
+ client.on('connect', function () {
+     console.log('Connected to MQTT broker');
+ });
+
+ client.on('error', function (error) {
+     // Handle errors
+     console.error('MQTT error:', error);
+ });
+
+function sendCoordinatesToMQTT(x, y) {
+// Format coordinates as JSON
+const coordinates = { x: x, y: y };
+
+// Publish coordinates to MQTT topic
+client.publish('coordinates', JSON.stringify(coordinates), function (err) {
+    if (!err) {
+        console.log('Coordinates sent to MQTT topic:', coordinates);
+    } else {
+        console.error('Error publishing coordinates to MQTT:', err);
+    }
+});
+}
+
 // Function to send data to the server
 function sendDataToServer(x, y) {
     // Get the current date and time in Thailand timezone
