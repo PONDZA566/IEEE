@@ -19,14 +19,14 @@ const auth = new google.auth.GoogleAuth({
 const sheets = google.sheets({ version: 'v4', auth });
 
 // Function to store coordinates in Google Sheets
-async function storeCoordinates(x, y, date) {
+async function storeCoordinates(x, y, date, time) {
   try {
     const response = await sheets.spreadsheets.values.append({
       spreadsheetId: '175TPRTJi41n7FJHvb_5cejFTJgudx-Wm11284OL_v2A',
       range: 'Sheet1!A2', // Start cell for appending data
       valueInputOption: 'RAW',
       requestBody: {
-        values: [[x, y, date]] // Array of values to append (including dateTime)
+        values: [[x, y, date, time]] // Array of values to append (including date and time)
       },
     });
     console.log('Coordinates stored successfully');
@@ -38,11 +38,11 @@ async function storeCoordinates(x, y, date) {
 
 // Endpoint to handle storing coordinates
 app.post('/store-coordinates', express.json(), async (req, res) => {
-    const { x, y, date } = req.body;
+    const { x, y, date, time } = req.body;
   
     try {
       // Store coordinates in Google Sheets
-      await storeCoordinates(x, y, date);
+      await storeCoordinates(date, time, x, y);
       res.sendStatus(200);
     } catch (error) {
       console.error('Failed to store coordinates:', error);
@@ -57,9 +57,6 @@ app.use(cors());
 // Route for serving index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-app.get('/store-coordinates', (req, res) => {
-  res.status(405).send('Method Not Allowed'); // Respond with a 405 Method Not Allowed status
 });
 
 // Start the Express server
