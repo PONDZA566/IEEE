@@ -202,13 +202,23 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Function to send data to the server
     // Function to send data to the server
+// Function to send data to the server
 function sendDataToServer(x, y) {
-    // Get the current date in yyyy-mm-dd format
-    var currentDate = new Date();
+    // Get the current date and time in Thailand timezone
+    var currentDate = new Date().toLocaleString('en-US', {timeZone: 'Asia/Bangkok'});
+    currentDate = new Date(currentDate);
+
+    // Extract date components
     var year = currentDate.getFullYear();
     var month = ('0' + (currentDate.getMonth() + 1)).slice(-2); // Adding 1 because getMonth() returns month index starting from 0
     var day = ('0' + currentDate.getDate()).slice(-2);
-    var dateOnly = year + '-' + month + '-' + day;
+    var date = year + '-' + month + '-' + day;
+
+    // Extract time components
+    var hours = ('0' + currentDate.getHours()).slice(-2);
+    var minutes = ('0' + currentDate.getMinutes()).slice(-2);
+    var seconds = ('0' + currentDate.getSeconds()).slice(-2);
+    var time = hours + ':' + minutes + ':' + seconds;
 
     // Send HTTP POST request to the server
     fetch('/store-coordinates', {
@@ -216,7 +226,7 @@ function sendDataToServer(x, y) {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ x: x, y: y, date: dateOnly }) // Include only date in the request body
+        body: JSON.stringify({ x: x, y: y, date: date, time: time }) // Include date and time separately in the request body
     })
     .then(response => {
         if (response.ok) {
@@ -229,5 +239,6 @@ function sendDataToServer(x, y) {
         console.error('Error sending coordinates:', error);
     });
 }
+
 
 });
