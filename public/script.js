@@ -1,3 +1,4 @@
+// Function to display a welcome message
 function showWelcomeMessage(username) {
     var welcomeMessage = document.createElement('div');
     welcomeMessage.textContent = "Welcome " + username;
@@ -104,9 +105,6 @@ document.addEventListener("DOMContentLoaded", function() {
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
         showGrid(); // Redraw the grid
         drawCircle(clickedX, clickedY); // Draw the circle at the clicked coordinates
-
-        // Send coordinates to the server
-        sendDataToServer(clickedX, clickedY);
     }
 
     // Attach click event listener to the canvas
@@ -134,6 +132,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    // Google Sheets button click event
     googleSheetsButton.addEventListener("click", function() {
         // Define your Google Sheets URL
         var googleSheetsURL = "https://docs.google.com/spreadsheets/d/175TPRTJi41n7FJHvb_5cejFTJgudx-Wm11284OL_v2A/edit#gid=0";
@@ -158,6 +157,7 @@ document.addEventListener("DOMContentLoaded", function() {
         clickedX = -1;
         clickedY = -1;
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+        coordinates.textContent = "";
         showGrid(); // Redraw the grid
     }
 
@@ -191,90 +191,94 @@ document.addEventListener("DOMContentLoaded", function() {
         googleSheetsButton.style.display = "block";
     }
 
+    // Clear button click event
     clearButton.addEventListener("click", clearCircle);
 
-    // Function to log out
-    function logout() {
+    // Logout button click event
+    logoutButton.addEventListener("click", function() {
         window.location.href = "index.html";
-    }
+    });
 
-    logoutButton.addEventListener("click", logout);
-
-// MQTT integration
- const mqtt = require('mqtt');
-
- // MQTT broker connection options
- const brokerUrl = 'mqtt://test.mosquitto.org:1883'; // Update with your MQTT broker URL
- const options = {
-     clientId: 'angkaewone', // Client ID
-     clean: true, // Clean session
-     connectTimeout: 4000, // Timeout in milliseconds
- };
-
- // Connect to MQTT broker
- const client = mqtt.connect(brokerUrl, options);
-
- // MQTT connection event handlers
- client.on('connect', function () {
-     console.log('Connected to MQTT broker');
- });
-
- client.on('error', function (error) {
-     // Handle errors
-     console.error('MQTT error:', error);
- });
-
-function sendCoordinatesToMQTT(x, y) {
-// Format coordinates as JSON
-const coordinates = { x: x, y: y };
-
-// Publish coordinates to MQTT topic
-client.publish('coordinates', JSON.stringify(coordinates), function (err) {
-    if (!err) {
-        console.log('Coordinates sent to MQTT topic:', coordinates);
-    } else {
-        console.error('Error publishing coordinates to MQTT:', err);
-    }
-});
-}
-
-// Function to send data to the server
-function sendDataToServer(x, y) {
-    // Get the current date and time in Thailand timezone
-    var currentDate = new Date().toLocaleString('en-US', {timeZone: 'Asia/Bangkok'});
-    currentDate = new Date(currentDate);
-
-    // Extract date components
-    var year = currentDate.getFullYear();
-    var month = ('0' + (currentDate.getMonth() + 1)).slice(-2); // Adding 1 because getMonth() returns month index starting from 0
-    var day = ('0' + currentDate.getDate()).slice(-2);
-    var date = year + '-' + month + '-' + day;
-
-    // Extract time components
-    var hours = ('0' + currentDate.getHours()).slice(-2);
-    var minutes = ('0' + currentDate.getMinutes()).slice(-2);
-    var seconds = ('0' + currentDate.getSeconds()).slice(-2);
-    var time = hours + ':' + minutes + ':' + seconds;
-
-    // Send HTTP POST request to the server
-    fetch('/store-coordinates', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ x: x, y: y, date: date, time: time }) // Include date and time separately in the request body
-    })
-    .then(response => {
-        if (response.ok) {
-            console.log('Coordinates sent successfully');
+    // Send button click event
+    sendButton.addEventListener("click", function() {
+        if (clickedX !== -1 && clickedY !== -1) { // Check if coordinates are valid
+            sendCoordinatesToGoogleSheets(clickedX, clickedY); // Call function to send coordinates to Google Sheets
+            sendCoordinatesToMQTT(clickedX, clickedY); // Call function to send coordinates to MQTT
         } else {
-            console.error('Failed to send coordinates');
+            alert("Please select coordinates before sending.");
         }
-    })
-    .catch(error => {
-        console.error('Error sending coordinates:', error);
+    });
+
+    // MQTT integration
+    const mqtt = require('mqtt');
+
+    // MQTT broker connection options
+    const brokerUrl = 'mqtt://test.mosquitto.org:1883'; // Update with your MQTT broker URL
+    const options = {
+        clientId: 'angkaewone', // Client ID
+        clean: true, // Clean session
+        connectTimeout: 4000, // Timeout in milliseconds
+    };
+
+    // Connect to MQTT broker
+    const client = mqtt.connect(brokerUrl, options);
+
+    // MQTT connection event handlers
+    client.on('connect', function () {
+        console.log('Connected to MQTT broker');
+    });
+
+    client.on('error', function (error) {
+        // Handle errors
+        console.error('MQTT error:', error);
+    });
+
+    // Function to send coordinates to MQTT
+function sendCoordinatesToMQTT(x, y) {
+    // Format coordinates as JSON
+    const coordinates = { x: x, y: y };
+
+    // Publish coordinates to MQTT topic
+    client.publish('coordinates', JSON.stringify(coordinates), function (err) {
+        if (!err) {
+            console.log('Coordinates sent to MQTT topic:', coordinates);
+        } else {
+            console.error('Error publishing coordinates to MQTT:', err);
+        }
     });
 }
 
+// Function to send coordinates to Google Sheets
+function sendCoordinatesToGoogleSheets(x, y) {
+    // Format coordinates and current timestamp
+    var currentDate = new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
+    var dateParts = currentDate.split(", ");
+    var date = dateParts[0];
+    var time = dateParts[1];
+    var data = {
+        x: x,
+        y: y,
+        date: date,
+        time: time
+    };
 
+    // Send data to Google Sheets endpoint
+    fetch('/store-coordinates', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Coordinates sent to Google Sheets:', data);
+        } else {
+            console.error('Failed to send coordinates to Google Sheets');
+        }
+    })
+    .catch(error => {
+        console.error('Error sending coordinates to Google Sheets:', error);
+    });
+    }
 });
