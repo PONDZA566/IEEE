@@ -33,11 +33,26 @@ const mqttClient = mqtt.connect(brokerUrl, mqttOptions);
 // MQTT connection event handlers
 mqttClient.on('connect', function () {
   console.log('Connected to MQTT broker');
+  // Subscribe to the desired MQTT topic
+  mqttClient.subscribe('your_topic_here', function (err) {
+      if (!err) {
+          console.log('Subscribed to MQTT topic');
+      } else {
+          console.error('Error subscribing to MQTT topic:', err);
+      }
+  });
 });
 
 mqttClient.on('error', function (error) {
   // Handle errors
   console.error('MQTT error:', error);
+});
+
+// Handle incoming MQTT messages
+mqttClient.on('message', function (topic, message) {
+  // Convert message to appropriate format and process it
+  console.log('Received message on topic', topic, ':', message.toString());
+  // Process the incoming message here
 });
 
 // Function to send coordinates to MQTT topic
@@ -55,31 +70,13 @@ function sendCoordinatesToMQTT(x, y) {
   });
 }
 
-// Function to store coordinates in Google Sheets
-async function storeCoordinates(x, y, date, time) {
-  try {
-    const response = await sheets.spreadsheets.values.append({
-      spreadsheetId: '175TPRTJi41n7FJHvb_5cejFTJgudx-Wm11284OL_v2A',
-      range: 'Sheet1!A2', // Start cell for appending data
-      valueInputOption: 'RAW',
-      requestBody: {
-        values: [[x, y, date, time]] // Array of values to append (including date and time)
-      },
-    });
-    console.log('Coordinates stored successfully');
-  } catch (error) {
-    console.error('Error storing coordinates:', error);
-    throw error;
-  }
-}
-
 // Endpoint to handle storing coordinates
 app.post('/store-coordinates', express.json(), async (req, res) => {
-  const { x, y, date, time } = req.body;
+  const { username, x, y, date, time } = req.body; // Include username in the request body
 
   try {
-    // Store coordinates in Google Sheets
-    await storeCoordinates(x, y, date, time);
+    // Store coordinates along with username in Google Sheets
+    await storeCoordinates(username, x, y, date, time);
     // Send coordinates to MQTT topic
     sendCoordinatesToMQTT(x, y);
     res.sendStatus(200);
@@ -88,6 +85,24 @@ app.post('/store-coordinates', express.json(), async (req, res) => {
     res.status(500).json({ error: 'Failed to store coordinates' });
   }
 });
+
+// Function to store coordinates in Google Sheets
+async function storeCoordinates(username, x, y, date, time) {
+  try {
+    const response = await sheets.spreadsheets.values.append({
+      spreadsheetId: '175TPRTJi41n7FJHvb_5cejFTJgudx-Wm11284OL_v2A',
+      range: 'Sheet1!A2', // Start cell for appending data
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [[username, date, time, x, y]] // Include username in the values array
+      },
+    });
+    console.log('Coordinates stored successfully');
+  } catch (error) {
+    console.error('Error storing coordinates:', error);
+    throw error;
+  }
+}
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
