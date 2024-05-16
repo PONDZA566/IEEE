@@ -17,6 +17,7 @@ body {
 h1 {
     text-align: center;
     margin-bottom: 20px;
+    color: #333;
 }
 
 .form-group {
@@ -59,9 +60,9 @@ button:hover {
 
 .image-container {
     position: relative;
-    width: 500px; /* Adjust the width as needed */
-    height: 500px; /* Adjust the height as needed */
-    left: 500px;
+    width: 800px; /* Adjust the width as needed */
+    height: 400px; /* Adjust the height as needed */
+    left: 300px;
     top: 70px;
 }
 
@@ -97,17 +98,16 @@ button:hover {
 #clearButton {
     position: absolute;
     top: 110px; /* Adjust the top position */
-    left: 550px; /* Adjust the right position */
+    left: 850px; /* Adjust the right position */
     width: 150px; /* Set the width */
     height: 40px; /* Set the height */
-
 }
 
 #sendButton {
     display: none; /* Hide the logout button by default */
     position: absolute;
     top: 50px; /* Adjust the top position */
-    left: 550px; /* Adjust the right position */
+    left: 850px; /* Adjust the right position */
     width: 150px; /* Set the width */
     height: 40px; /* Set the height */
 }
@@ -117,13 +117,11 @@ button:hover {
     background-color: #5b2dc6; /* Darker red background color on hover */
 }
 
-
-
 #logoutButton {
     display: none; /* Hide the logout button by default */
     position: absolute;
     top: 170px; /* Adjust the top position */
-    left: 550px; /* Adjust the right position */
+    left: 850px; /* Adjust the right position */
     width: 150px; /* Set the width */
     height: 40px; /* Set the height */
 }
@@ -137,16 +135,29 @@ button:hover {
     display: none; /* Hide the logout button by default */
     position: absolute;
     top: 230px; /* Adjust the top position */
-    left: 550px; /* Adjust the right position */
+    left: 850px; /* Adjust the right position */
     width: 170px; /* Set the width */
     height: 40px; /* Set the height */
 }
 
 /* Style for the logout button on hover */
-#sendButton:hover {
+#googleSheetsButton:hover {
     background-color: #4ba2e1; /* Darker red background color on hover */
 }
 
+#messages {
+    margin-top: 130px;
+    margin-left: 547.5px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    width: 300px; /* Adjust the width as needed */
+    height: 100px; /* Adjust the height as needed */
+    overflow-y: auto; /* Add vertical scroll if content exceeds height */
+}
 
-
-
+#messages div {
+    margin-bottom: 10px;
+    padding: 5px;
+    border-bottom: 1px solid #eee;
+}

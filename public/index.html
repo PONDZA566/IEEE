@@ -23,15 +23,18 @@
     </div>
 
     <div class="image-container">
-        <canvas id="imageCanvas" width="500" height="500"></canvas>
-        <img id="image" src="testpic.jpg" alt="Image"> <!-- Remove the 'hidden' class from the img tag -->
+        <canvas id="imageCanvas" width="800" height="400"></canvas>
+        <img id="image" src="pool.jpg" alt="Image"> <!-- Remove the 'hidden' class from the img tag -->
         <div id="coordinates"></div> <!-- Coordinates display -->
-        <button id="clearButton" style="display: none;">UNMARK</button>
+        <button id="clearButton" style="display: none;">Unmark</button>
         <button id="sendButton" style="display: none;">Start</button>
         <button id="googleSheetsButton" style="display: none;">Open Google Sheets</button>
         <button id="logoutButton" style="display: none;" onclick="logout()">Logout</button>
     </div>
 
+    <div id="messages"></div> <!-- This is the new div for displaying messages -->
+
+    <script src="/socket.io/socket.io.js"></script>
     <script src="script.js" defer></script> <!-- Link to your JavaScript file -->
 </body>
 </html>

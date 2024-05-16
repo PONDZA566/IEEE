@@ -10,6 +10,29 @@ function showWelcomeMessage(username) {
     document.body.appendChild(welcomeMessage);
 }
 
+function showPoolsize(){
+    var poolsize = document.createElement('div');
+    poolsize.textContent = "***The pool size is 4*8 meters***"
+    poolsize.style.position = "absolute";
+    poolsize.style.top = "600px";
+    poolsize.style.left = "75%";
+    poolsize.style.transform = "translateX(-50%)";
+    poolsize.style.fontSize = "20px";
+    document.body.appendChild(poolsize);
+}
+
+function showSubscribeMessage(){
+    var poolsize = document.createElement('div');
+    poolsize.textContent = "Message from MQTT"
+    poolsize.style.position = "absolute";
+    poolsize.style.top = "675px";
+    poolsize.style.left = "48%";
+    poolsize.style.transform = "translateX(-50%)";
+    poolsize.style.fontSize = "20px";
+    document.body.appendChild(poolsize);
+}
+
+
 document.addEventListener("DOMContentLoaded", function() {
     var canvas = document.getElementById('imageCanvas');
     var ctx = canvas.getContext('2d');
@@ -22,16 +45,20 @@ document.addEventListener("DOMContentLoaded", function() {
     var username;
     var password;
 
+    // Variables to store previous coordinates
+    var prevClickedX = -1;
+    var prevClickedY = -1;
+
     // Initially hide the send button
     sendButton.style.display = "none";
 
     // Define the size of the canvas and the grid
     var canvasWidth = canvas.width;
     var canvasHeight = canvas.height;
-    var columns = 4;
+    var columns = 8;
     var rows = 4;
 
-    // Variable to store the coordinates of the clicked point
+    // Variables to store the coordinates of the clicked point
     var clickedX = -1;
     var clickedY = -1;
 
@@ -64,18 +91,30 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // Function to draw a red circle
-    function drawCircle(x, y) {
-        ctx.beginPath();
-        ctx.arc(x, y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = 'red';
-        ctx.fill();
+    function drawImage(x, y) {
+        var img = new Image();
+        img.onload = function() {
+            var imageWidth = 50; // Adjust as needed
+            var imageHeight = 120; // Adjust as needed
+            var imageX = x - imageWidth / 2; // Calculate x-coordinate for centering the image within the circle
+            var imageY = y - imageHeight / 2; // Calculate y-coordinate for centering the image within the circle
+            ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
+        };
+        img.src = 'boat.png'; // Replace 'path_to_your_image' with the path to your image file
     }
 
     function drawCircle2(x, y) {
         ctx.beginPath();
         ctx.arc(x, y, 50, 0, 2 * Math.PI);
-        ctx.strokeStyle = "blue";
+        ctx.strokeStyle = "purple";
+        ctx.lineWidth = 5;
+        ctx.stroke();
+    }
+
+    function drawCircle3(x, y) {
+        ctx.beginPath();
+        ctx.arc(x, y, 50, 0, 2 * Math.PI);
+        ctx.strokeStyle = "green";
         ctx.lineWidth = 5;
         ctx.stroke();
     }
@@ -93,6 +132,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Function to show the gridlines
     function showGrid() {
+        drawAxes();
         drawGrid();
     }
 
@@ -106,24 +146,126 @@ document.addEventListener("DOMContentLoaded", function() {
         image.style.display = "block";
     }
 
-    // Function to display coordinates
+    // Function to display coordinates and draw arrow from previous point
     function showCoordinates(event) {
         var rect = canvas.getBoundingClientRect();
         clickedX = event.clientX - rect.left;
         clickedY = event.clientY - rect.top;
-        showclickY = clickedY
-        clickedY = Math.abs(clickedY-500);
-        console.log("Coordinates: (" + clickedX.toFixed(2) + ", " + clickedY.toFixed(2) + ")");
+        var showclickY = clickedY;
+        clickedY = Math.abs(clickedY - 400); // Adjusting Y-coordinate
+
+        if (prevClickedX !== -1 && prevClickedY !== -1) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before redrawing
+            showGrid(); // Redraw the grid
+            //drawImage(prevClickedX, prevClickedY); // Draw previous circle
+            drawCircle2(prevClickedX, prevClickedY); // Draw previous circle
+            drawArrow(prevClickedX, prevClickedY, clickedX, clickedY); // Draw arrow
+        }
+
+        // Draw circle at the present point
+        drawImage(clickedX, showclickY);
+        drawCircle3(clickedX, showclickY); // Draw circle
+
+        prevClickedX = clickedX;
+        prevClickedY = clickedY;
+
         coordinates.textContent = "Coordinates: (" + clickedX.toFixed(2) + ", " + clickedY.toFixed(2) + ")";
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-        showGrid(); // Redraw the grid
-        drawCircle(clickedX, showclickY); // Draw the circle at the clicked coordinates
-        drawCircle2(clickedX,showclickY);
     }
 
     // Attach click event listener to the canvas
-    canvas.addEventListener("click", showCoordinates);
+    canvas.addEventListener("click", function(event) {
+        // Check if the user is logged in before executing showCoordinates
+        if (username) {
+            showCoordinates(event);
+        }
+    });
 
+    function drawArrow(fromX, fromY, toX, toY) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before redrawing
+        showGrid(); // Redraw the grid
+        firstY = Math.abs(fromY - 400);
+        drawImage(fromX, firstY); // Draw previous circle
+        drawCircle2(fromX, firstY); // Draw previous circle
+    
+        // Calculate the angle of the arrow
+        var angle = Math.atan2(toY - fromY, toX - fromX);
+    
+        // Calculate the end point of the arrow, stopping short of the circle's center
+        var arrowLength = Math.sqrt(Math.pow(toX - fromX, 2) + Math.pow(toY - fromY, 2));
+        var radius = 20; // Radius of the red circle plus some padding
+        var endX = toX - radius * Math.cos(angle);
+        var endY = toY - radius * Math.sin(angle);
+        var adjustedEndY = Math.abs(endY - 400); // Adjust endY for the canvas
+    
+        // Draw the arrow line
+        ctx.beginPath();
+        ctx.moveTo(fromX, firstY);
+        ctx.lineTo(endX, adjustedEndY);
+        ctx.strokeStyle = 'black'; // Arrow color
+        ctx.lineWidth = 3; // Arrow line width
+        ctx.stroke();
+    
+        // Draw arrowhead
+        var headLength = 20; // Length of the arrowhead
+        ctx.beginPath();
+        ctx.moveTo(endX, adjustedEndY);
+        ctx.lineTo(endX - headLength * Math.cos(angle - Math.PI / 6), adjustedEndY - headLength * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(endX, adjustedEndY); // Ensure a single connected path
+        ctx.lineTo(endX - headLength * Math.cos(angle + Math.PI / 6), adjustedEndY - headLength * Math.sin(angle + Math.PI / 6));
+        ctx.stroke();
+    }
+    
+    // Function to draw X and Y axes
+    // Function to draw X and Y axes with arrowheads
+    function drawAxes() {
+        // Draw X axis
+        ctx.beginPath();
+        ctx.moveTo(0, canvasHeight); // Start point for X-axis
+        ctx.lineTo(canvasWidth, canvasHeight); // End point for X-axis
+        ctx.strokeStyle = '#000'; // Black color
+        ctx.lineWidth = 8;
+        ctx.stroke();
+
+        // Draw X-axis arrowhead
+        var arrowSize = 20;
+        ctx.beginPath();
+        ctx.moveTo(canvasWidth, canvasHeight); // Arrow base
+        ctx.lineTo(canvasWidth - arrowSize, canvasHeight - arrowSize / 2); // Left side
+        ctx.lineTo(canvasWidth - arrowSize, canvasHeight + arrowSize / 2); // Right side
+        ctx.closePath();
+        ctx.fillStyle = '#000'; // Black color
+        ctx.fill();
+
+        // Draw Y axis
+        ctx.beginPath();
+        ctx.moveTo(0, canvasHeight); // Start point for Y-axis
+        ctx.lineTo(0, 0); // End point for Y-axis
+        ctx.strokeStyle = '#000'; // Black color
+        ctx.lineWidth = 8;
+        ctx.stroke();
+
+        // Draw Y-axis arrowhead
+        ctx.beginPath();
+        ctx.moveTo(0, 0); // Arrow base
+        ctx.lineTo(-arrowSize / 2, arrowSize); // Left side
+        ctx.lineTo(arrowSize / 2, arrowSize); // Right side
+        ctx.closePath();
+        ctx.fillStyle = '#000'; // Black color
+        ctx.fill();
+
+        // Label for X-axis
+        ctx.font = '18px Arial';
+        ctx.fillStyle = '#000'; // Black color
+        ctx.fillText('X', canvasWidth - 15, canvasHeight - 10);
+
+        // Label for Y-axis
+        ctx.save(); // Save the current state of the canvas
+        ctx.translate(10, canvasHeight/16); // Translate to the desired position for Y-axis label
+        ctx.fillText('Y', 0, 0); // Draw the Y-axis label
+        ctx.restore(); // Restore the saved state of the canvas
+    }
+
+    
     // Login form submission
     var form = document.getElementById("login-form");
     form.addEventListener("submit", function(event) {
@@ -137,6 +279,8 @@ document.addEventListener("DOMContentLoaded", function() {
             showGrid(); // Call function to show the gridlines
             showImage(); // Call function to show the image
             showWelcomeMessage(username); // Call function to display the welcome message
+            showPoolsize();// Call function to display size of the pool
+            showSubscribeMessage();
             showClearButton(); // Call function to show the clear button
             showLogoutButton(); // Call function to show the logout button
             showSendButton(); // Call function to show the send button
@@ -272,5 +416,22 @@ document.addEventListener("DOMContentLoaded", function() {
             alert("Please select coordinates before sending.");
         }
     });
+
+    const socket = io();
+
+socket.on('mqttMessage', function(data) {
+    const messageDiv = document.createElement('div');
+    messageDiv.textContent = `Topic: ${data.topic}, Message: ${data.message}`;
+    
+    // Get the messages container
+    const messagesContainer = document.getElementById('messages');
+    
+    // Insert the new message before the first child of messages container
+    messagesContainer.insertBefore(messageDiv, messagesContainer.firstChild);
+});
+
+socket.on('connect_error', function(error) {
+    console.error('Socket.IO error:', error);
+});
 
 });
