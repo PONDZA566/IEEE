@@ -3,6 +3,8 @@ const { google } = require('googleapis');
 const path = require('path');
 const cors = require('cors');
 const mqtt = require('mqtt'); // Import MQTT module
+const http = require('http'); // Import http module
+const { Server } = require('socket.io'); // Import socket.io
 
 const app = express();
 const port = 3000;
@@ -34,7 +36,7 @@ const mqttClient = mqtt.connect(brokerUrl, mqttOptions);
 mqttClient.on('connect', function () {
   console.log('Connected to MQTT broker');
   // Subscribe to the desired MQTT topic
-  mqttClient.subscribe('your_topic_here', function (err) {
+  mqttClient.subscribe('robot/command', function (err) {
       if (!err) {
           console.log('Subscribed to MQTT topic');
       } else {
@@ -43,16 +45,23 @@ mqttClient.on('connect', function () {
   });
 });
 
-mqttClient.on('error', function (error) {
-  // Handle errors
-  console.error('MQTT error:', error);
-});
+// Create an HTTP server
+const server = http.createServer(app);
+
+// Create a Socket.IO server
+const io = new Server(server);
 
 // Handle incoming MQTT messages
 mqttClient.on('message', function (topic, message) {
   // Convert message to appropriate format and process it
   console.log('Received message on topic', topic, ':', message.toString());
-  // Process the incoming message here
+  // Broadcast the message to all connected Socket.IO clients
+  io.emit('mqttMessage', { topic, message: message.toString() });
+});
+
+mqttClient.on('error', function (error) {
+  // Handle errors
+  console.error('MQTT error:', error);
 });
 
 // Function to send coordinates to MQTT topic
@@ -113,7 +122,15 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start the Express server
-app.listen(port, () => {
+// Start the server
+server.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
+});
+
+// Handle Socket.IO connections
+io.on('connection', (socket) => {
+  console.log('A client connected');
+  socket.on('disconnect', () => {
+    console.log('A client disconnected');
+  });
 });
