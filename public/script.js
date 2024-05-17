@@ -413,9 +413,9 @@ function showCoordinates(event) {
 
     // Send button click event
     sendButton.addEventListener("click", function() {
-        if (prevClickedPoints.length >= 3) { // Check if at least two coordinates are selected
-            // Prepare an array of coordinates
-            var coordinatesArray = prevClickedPoints.map(function(coordinate) {
+        if (prevClickedPoints.length >= 3) { // Check if at least three coordinates are selected
+            // Extract the first three coordinates
+            var coordinatesArray = prevClickedPoints.slice(0, 3).map(function(coordinate) {
                 return { x: coordinate.x, y: coordinate.y };
             });
 
