@@ -62,6 +62,9 @@ document.addEventListener("DOMContentLoaded", function() {
     var clickedX = -1;
     var clickedY = -1;
 
+    // Previous clicked points
+    var prevClickedPoints = [];
+
     // Function to draw the gridlines
     function drawGrid() {
         // Calculate the width and height of each cell
@@ -111,10 +114,10 @@ document.addEventListener("DOMContentLoaded", function() {
         ctx.stroke();
     }
 
-    function drawCircle3(x, y) {
+    function drawCircle3(x, y, color) {
         ctx.beginPath();
         ctx.arc(x, y, 50, 0, 2 * Math.PI);
-        ctx.strokeStyle = "green";
+        ctx.strokeStyle = color;
         ctx.lineWidth = 5;
         ctx.stroke();
     }
@@ -146,31 +149,62 @@ document.addEventListener("DOMContentLoaded", function() {
         image.style.display = "block";
     }
 
-    // Function to display coordinates and draw arrow from previous point
-    function showCoordinates(event) {
-        var rect = canvas.getBoundingClientRect();
-        clickedX = event.clientX - rect.left;
-        clickedY = event.clientY - rect.top;
-        var showclickY = clickedY;
-        clickedY = Math.abs(clickedY - 400); // Adjusting Y-coordinate
+// Function to display coordinates and draw only two boat images from the previous two points
+function showCoordinates(event) {
+    var rect = canvas.getBoundingClientRect();
+    clickedX = event.clientX - rect.left;
+    clickedY = event.clientY - rect.top;
+    var showclickY = clickedY;
+    clickedY = Math.abs(clickedY - 400); // Adjusting Y-coordinate
+    
+    // Add the clicked point to the array of previous points
+    prevClickedPoints.push({ x: clickedX, y: clickedY });
 
-        if (prevClickedX !== -1 && prevClickedY !== -1) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before redrawing
-            showGrid(); // Redraw the grid
-            //drawImage(prevClickedX, prevClickedY); // Draw previous circle
-            drawCircle2(prevClickedX, prevClickedY); // Draw previous circle
-            drawArrow(prevClickedX, prevClickedY, clickedX, clickedY); // Draw arrow
+    // Limit the number of stored points to 3
+    if (prevClickedPoints.length > 3) {
+        prevClickedPoints.shift(); // Remove the oldest point
+    }
+
+    // Clear the canvas before redrawing
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Redraw the grid
+    showGrid();
+
+    // Draw boat images for the two most recent points
+    prevClickedPoints.slice(-3).forEach(function(coordinate, index) {
+        if (index === 0) {
+            drawImage(coordinate.x, Math.abs(coordinate.y - 400));
+            drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), "blue");
+           
+        } else if(index === 1) {
+            drawImage(coordinate.x, Math.abs(coordinate.y - 400));
+            drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), "green");
+           
+        } else {
+            drawImage(coordinate.x, Math.abs(coordinate.y - 400));
+            drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), "orange");
+         
         }
 
-        // Draw circle at the present point
-        drawImage(clickedX, showclickY);
-        drawCircle3(clickedX, showclickY); // Draw circle
+    });
 
-        prevClickedX = clickedX;
-        prevClickedY = clickedY;
+    
 
-        coordinates.textContent = "Coordinates: (" + clickedX.toFixed(2) + ", " + clickedY.toFixed(2) + ")";
-    }
+    // Update the coordinates text content
+    coordinates.textContent = "Coordinates: (" + clickedX.toFixed(2) + ", " + clickedY.toFixed(2) + ")";
+
+    // Display the coordinates in the coordinatesList element
+    var coordinatesList = document.getElementById("coordinatesList");
+    coordinatesList.innerHTML = "<h3>Stored Coordinates:</h3>";
+    prevClickedPoints.forEach(function(coordinate, index) {
+    var color = index === 0 ? "blue" : index === 1 ? "green" : "orange"; // Choose color based on index
+    var coordinateHTML = "<p style='color: " + color + ";'>Point " + (index + 1) + ": (" + coordinate.x.toFixed(2) + ", " + coordinate.y.toFixed(2) + ")</p>";
+    coordinatesList.innerHTML += coordinateHTML;
+
+})
+}
+
 
     // Attach click event listener to the canvas
     canvas.addEventListener("click", function(event) {
@@ -316,6 +350,9 @@ document.addEventListener("DOMContentLoaded", function() {
         clickedY = -1;
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
         coordinates.textContent = "";
+        prevClickedPoints = []; // Clear the stored coordinates
+        var coordinatesList = document.getElementById("coordinatesList");
+        coordinatesList.innerHTML = ""; // Clear the coordinates list
         showGrid(); // Redraw the grid
     }
 
@@ -358,46 +395,53 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // Function to send coordinates to MQTT
-    function sendCoordinatesToMQTT(client,x, y) {
-        // Format coordinates as JSON
-        const coordinates = { x: x, y: y };
+    function sendCoordinatesToMQTT(client, coordinatesArray) {
+        coordinatesArray.forEach(function(coordinate, index) {
+            // Format coordinates as JSON
+            const coordinates = { x: coordinate.x, y: coordinate.y };
 
-        // Publish coordinates to MQTT topic
-        client.publish('coordinates', JSON.stringify(coordinates), function (err) {
-            if (!err) {
-                console.log('Coordinates sent to MQTT topic:', coordinates);
-            } else {
-                console.error('Error publishing coordinates to MQTT:', err);
-            }
+            // Publish coordinates to MQTT topic
+            client.publish('coordinates', JSON.stringify(coordinates), function(err) {
+                if (!err) {
+                    console.log('Coordinates sent to MQTT topic:', coordinates);
+                } else {
+                    console.error('Error publishing coordinates to MQTT:', err);
+                }
+            });
         });
     }
 
-    // Function to send coordinates to Google Sheets
-    function sendCoordinatesToGoogleSheets(x, y, username) {
-        // Format coordinates and current timestamp
-        var currentDate = new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
-        var dateParts = currentDate.split(", ");
-        var date = dateParts[0];
-        var time = dateParts[1];
-        var data = {
-            username: username,
-            x: x,
-            y: y,
-            date: date,
-            time: time
-        };
+    // Send button click event
+    sendButton.addEventListener("click", function() {
+        if (prevClickedPoints.length >= 3) { // Check if at least two coordinates are selected
+            // Prepare an array of coordinates
+            var coordinatesArray = prevClickedPoints.map(function(coordinate) {
+                return { x: coordinate.x, y: coordinate.y };
+            });
 
+            // Send coordinates to Google Sheets
+            sendCoordinatesToGoogleSheets(coordinatesArray, username);
+            
+            // Send coordinates to MQTT with delay
+            sendCoordinatesToMQTTWithDelay(client, coordinatesArray, 0);
+        } else {
+            alert("Please select at least three coordinates before sending.");
+        }
+    });
+
+    // Function to send coordinates to Google Sheets
+    function sendCoordinatesToGoogleSheets(coordinatesArray, username) {
         // Send data to Google Sheets endpoint
-        fetch('/store-coordinates', {
+        return fetch('/store-coordinates', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify({ username: username, coordinates: coordinatesArray }),
         })
         .then(response => {
             if (response.ok) {
-                console.log('Coordinates sent to Google Sheets:', data);
+                console.log('Coordinates sent to Google Sheets:', coordinatesArray);
             } else {
                 console.error('Failed to send coordinates to Google Sheets');
             }
@@ -407,19 +451,17 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Send button click event
-    sendButton.addEventListener("click", function() {
-        if (clickedX !== -1 && clickedY !== -1) { // Check if coordinates are valid
-            sendCoordinatesToGoogleSheets(clickedX, clickedY, username); // Call function to send coordinates to Google Sheets
-            sendCoordinatesToMQTT(client,clickedX, clickedY); // Pass mqttClient to the function
-        } else {
-            alert("Please select coordinates before sending.");
-        }
-    });
+    // Function to send coordinates to MQTT with delay
+    function sendCoordinatesToMQTTWithDelay(client, coordinatesArray, delay) {
+        setTimeout(() => {
+            sendCoordinatesToMQTT(client, coordinatesArray);
+        }, delay);
+    }
+
 
     const socket = io();
 
-socket.on('mqttMessage', function(data) {
+    socket.on('mqttMessage', function(data) {
     const messageDiv = document.createElement('div');
     messageDiv.textContent = `Topic: ${data.topic}, Message: ${data.message}`;
     

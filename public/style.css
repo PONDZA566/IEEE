@@ -161,3 +161,21 @@ button:hover {
     padding: 5px;
     border-bottom: 1px solid #eee;
 }
+
+#coordinatesList {
+    padding: 10px;
+    margin-top: -500px;
+    margin-left: 50px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#coordinatesList h3 {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+#coordinatesList p {
+    font-size: 16px;
+    margin: 5px 0;
+}
