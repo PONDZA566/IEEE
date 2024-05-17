@@ -1,0 +1,181 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+}
+
+.login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 95%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.hidden {
+    display: none; /* Hide the element initially */
+}
+
+.image-container {
+    position: relative;
+    width: 800px; /* Adjust the width as needed */
+    height: 400px; /* Adjust the height as needed */
+    left: 300px;
+    top: 70px;
+}
+
+#imageCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+#image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Adjust object-fit property as needed */
+    z-index: 0;
+}
+
+#coordinates {
+    position: absolute;
+    bottom: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 17px; /* Adjust the font size as needed */
+    padding: 5px 10px; /* Add padding */
+    border-radius: 5px; /* Add border-radius for rounded corners */
+}
+
+#clearButton {
+    position: absolute;
+    top: 110px; /* Adjust the top position */
+    left: 850px; /* Adjust the right position */
+    width: 150px; /* Set the width */
+    height: 40px; /* Set the height */
+}
+
+#sendButton {
+    display: none; /* Hide the logout button by default */
+    position: absolute;
+    top: 50px; /* Adjust the top position */
+    left: 850px; /* Adjust the right position */
+    width: 150px; /* Set the width */
+    height: 40px; /* Set the height */
+}
+
+/* Style for the logout button on hover */
+#sendButton:hover {
+    background-color: #5b2dc6; /* Darker red background color on hover */
+}
+
+#logoutButton {
+    display: none; /* Hide the logout button by default */
+    position: absolute;
+    top: 170px; /* Adjust the top position */
+    left: 850px; /* Adjust the right position */
+    width: 150px; /* Set the width */
+    height: 40px; /* Set the height */
+}
+
+/* Style for the logout button on hover */
+#logoutButton:hover {
+    background-color: #5b2dc6; /* Darker red background color on hover */
+}
+
+#googleSheetsButton {
+    display: none; /* Hide the logout button by default */
+    position: absolute;
+    top: 230px; /* Adjust the top position */
+    left: 850px; /* Adjust the right position */
+    width: 170px; /* Set the width */
+    height: 40px; /* Set the height */
+}
+
+/* Style for the logout button on hover */
+#googleSheetsButton:hover {
+    background-color: #4ba2e1; /* Darker red background color on hover */
+}
+
+#messages {
+    margin-top: 130px;
+    margin-left: 547.5px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    width: 300px; /* Adjust the width as needed */
+    height: 100px; /* Adjust the height as needed */
+    overflow-y: auto; /* Add vertical scroll if content exceeds height */
+}
+
+#messages div {
+    margin-bottom: 10px;
+    padding: 5px;
+    border-bottom: 1px solid #eee;
+}
+
+#coordinatesList {
+    padding: 10px;
+    margin-top: -500px;
+    margin-left: 50px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#coordinatesList h3 {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+#coordinatesList p {
+    font-size: 16px;
+    margin: 5px 0;
+}

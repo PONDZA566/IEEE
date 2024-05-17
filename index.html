@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="style.css"> <!-- Link to your CSS file -->
+</head>
+<body>
+    <div class="login-container">
+        <h1>Login</h1>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <div class="image-container">
+        <canvas id="imageCanvas" width="800" height="400"></canvas>
+        <img id="image" src="pool.jpg" alt="Image"> <!-- Remove the 'hidden' class from the img tag -->
+        <div id="coordinates"></div> <!-- Coordinates display -->
+        <button id="clearButton" style="display: none;">Unmark</button>
+        <button id="sendButton" style="display: none;">Start</button>
+        <button id="googleSheetsButton" style="display: none;">Open Google Sheets</button>
+        <button id="logoutButton" style="display: none;" onclick="logout()">Logout</button>
+    </div>
+
+    <div id="messages"></div> <!-- This is the new div for displaying messages -->
+    <div id="coordinatesList"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js" defer></script> <!-- Link to your JavaScript file -->
+</body>
+</html>
