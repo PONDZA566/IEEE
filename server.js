@@ -64,30 +64,23 @@ mqttClient.on('error', function (error) {
   console.error('MQTT error:', error);
 });
 
-// Function to send coordinates to MQTT topic
-function sendCoordinatesToMQTT(x, y) {
-  // Format coordinates as JSON
-  const coordinates = { x: x, y: y };
-
-  // Publish coordinates to MQTT topic
-  mqttClient.publish('coordinates', JSON.stringify(coordinates), function (err) {
-    if (!err) {
-      console.log('Coordinates sent to MQTT topic:', coordinates);
-    } else {
-      console.error('Error publishing coordinates to MQTT:', err);
-    }
-  });
-}
-
 // Endpoint to handle storing coordinates
 app.post('/store-coordinates', express.json(), async (req, res) => {
-  const { username, x, y, date, time } = req.body; // Include username in the request body
+  const { username, coordinates } = req.body; // Include username and coordinates array in the request body
 
   try {
-    // Store coordinates along with username in Google Sheets
-    await storeCoordinates(username, x, y, date, time);
-    // Send coordinates to MQTT topic
-    sendCoordinatesToMQTT(x, y);
+    // Ensure coordinates is an array and not undefined
+    if (!Array.isArray(coordinates)) {
+      throw new Error('Coordinates must be an array');
+    }
+
+    // Store each coordinate along with username in Google Sheets and send to MQTT
+    await Promise.all(coordinates.map(async (coord) => {
+      const { x, y, date, time } = coord;
+      await storeCoordinates(username, x, y, date, time);
+      sendCoordinatesToMQTT(x, y);
+    }));
+
     res.sendStatus(200);
   } catch (error) {
     console.error('Failed to store coordinates:', error);
@@ -111,6 +104,21 @@ async function storeCoordinates(username, x, y, date, time) {
     console.error('Error storing coordinates:', error);
     throw error;
   }
+}
+
+// Updated function to send coordinates to MQTT topic
+function sendCoordinatesToMQTT(x, y) {
+  // Format coordinates as JSON
+  const coordinates = { x: x, y: y };
+
+  // Publish coordinates to MQTT topic
+  mqttClient.publish('angkaewone/1', JSON.stringify(coordinates), function (err) {
+    if (!err) {
+      console.log('Coordinates sent to MQTT topic:', coordinates);
+    } else {
+      console.error('Error publishing coordinates to MQTT:', err);
+    }
+  });
 }
 
 // Serve static files from the 'public' directory
