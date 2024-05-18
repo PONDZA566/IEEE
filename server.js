@@ -64,29 +64,29 @@ mqttClient.on('error', function (error) {
   console.error('MQTT error:', error);
 });
 
-// Endpoint to handle storing coordinates
-app.post('/store-coordinates', express.json(), async (req, res) => {
-  const { username, coordinates } = req.body; // Include username and coordinates array in the request body
+  // Endpoint to handle storing coordinates
+  app.post('/store-coordinates', express.json(), async (req, res) => {
+    const { username, coordinates, date, time } = req.body; // Include username, coordinates, date, and time in the request body
 
-  try {
-    // Ensure coordinates is an array and not undefined
-    if (!Array.isArray(coordinates)) {
-      throw new Error('Coordinates must be an array');
+    try {
+        // Ensure coordinates is an array and not undefined
+        if (!Array.isArray(coordinates)) {
+            throw new Error('Coordinates must be an array');
+        }
+
+        // Store each coordinate along with username, date, and time in Google Sheets
+        await Promise.all(coordinates.map(async (coord) => {
+            const { x, y } = coord;
+            await storeCoordinates(username, x, y, date, time);
+            sendCoordinatesToMQTT(x, y);
+        }));
+
+        res.sendStatus(200);
+    } catch (error) {
+        console.error('Failed to store coordinates:', error);
+        res.status(500).json({ error: 'Failed to store coordinates' });
     }
-
-    // Store each coordinate along with username in Google Sheets and send to MQTT
-    await Promise.all(coordinates.map(async (coord) => {
-      const { x, y, date, time } = coord;
-      await storeCoordinates(username, x, y, date, time);
-      sendCoordinatesToMQTT(x, y);
-    }));
-
-    res.sendStatus(200);
-  } catch (error) {
-    console.error('Failed to store coordinates:', error);
-    res.status(500).json({ error: 'Failed to store coordinates' });
-  }
-});
+  });
 
 // Function to store coordinates in Google Sheets
 async function storeCoordinates(username, x, y, date, time) {
