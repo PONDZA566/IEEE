@@ -150,60 +150,59 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
 // Function to display coordinates and draw only two boat images from the previous two points
-function showCoordinates(event) {
-    var rect = canvas.getBoundingClientRect();
-    clickedX = event.clientX - rect.left;
-    clickedY = event.clientY - rect.top;
-    var showclickY = clickedY;
-    clickedY = Math.abs(clickedY - 400); // Adjusting Y-coordinate
-    
-    // Add the clicked point to the array of previous points
-    prevClickedPoints.push({ x: clickedX, y: clickedY });
+    function showCoordinates(event) {
+        var rect = canvas.getBoundingClientRect();
+        clickedX = event.clientX - rect.left;
+        clickedY = event.clientY - rect.top;
+        var showclickY = clickedY;
+        clickedY = Math.abs(clickedY - 400); // Adjusting Y-coordinate
+        
+        // Add the clicked point to the array of previous points
+        prevClickedPoints.push({ x: clickedX, y: clickedY });
 
-    // Limit the number of stored points to 3
-    if (prevClickedPoints.length > 3) {
-        prevClickedPoints.shift(); // Remove the oldest point
-    }
-
-    // Clear the canvas before redrawing
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Redraw the grid
-    showGrid();
-
-    // Draw boat images for the two most recent points
-    prevClickedPoints.slice(-3).forEach(function(coordinate, index) {
-        if (index === 0) {
-            drawImage(coordinate.x, Math.abs(coordinate.y - 400));
-            drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), "blue");
-           
-        } else if(index === 1) {
-            drawImage(coordinate.x, Math.abs(coordinate.y - 400));
-            drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), "green");
-           
-        } else {
-            drawImage(coordinate.x, Math.abs(coordinate.y - 400));
-            drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), "orange");
-         
+        // Limit the number of stored points to 3
+        if (prevClickedPoints.length > 3) {
+            prevClickedPoints.shift(); // Remove the oldest point
         }
 
-    });
+        // Clear the canvas before redrawing
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Redraw the grid
+        showGrid();
 
-    
+        // Draw boat images for the two most recent points
+        prevClickedPoints.slice(-3).forEach(function(coordinate, index) {
+            if (index === 0) {
+                drawImage(coordinate.x, Math.abs(coordinate.y - 400));
+                drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), "blue");
+            
+            } else if(index === 1) {
+                drawImage(coordinate.x, Math.abs(coordinate.y - 400));
+                drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), "green");
+            
+            } else {
+                drawImage(coordinate.x, Math.abs(coordinate.y - 400));
+                drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), "orange");
+            
+            }
 
-    // Update the coordinates text content
-    coordinates.textContent = "Coordinates: (" + clickedX.toFixed(2) + ", " + clickedY.toFixed(2) + ")";
+        });
 
-    // Display the coordinates in the coordinatesList element
-    var coordinatesList = document.getElementById("coordinatesList");
-    coordinatesList.innerHTML = "<h3>Stored Coordinates:</h3>";
-    prevClickedPoints.forEach(function(coordinate, index) {
-    var color = index === 0 ? "blue" : index === 1 ? "green" : "orange"; // Choose color based on index
-    var coordinateHTML = "<p style='color: " + color + ";'>Point " + (index + 1) + ": (" + coordinate.x.toFixed(2) + ", " + coordinate.y.toFixed(2) + ")</p>";
-    coordinatesList.innerHTML += coordinateHTML;
+        // Update the coordinates text content
+        coordinates.textContent = "Coordinates: (" + clickedX.toFixed(2) + ", " + clickedY.toFixed(2) + ")";
 
-})
-}
+        // Display the coordinates in the coordinatesList element
+        var coordinatesList = document.getElementById("coordinatesList");
+        coordinatesList.innerHTML = "<h3>Stored Coordinates:</h3>";
+        prevClickedPoints.forEach(function(coordinate, index) {
+            var color = index === 0 ? "blue" : index === 1 ? "green" : "orange"; // Choose color based on index
+            var coordinateHTML = "<p style='color: " + color + ";'>Point " + (index + 1) + ": (" + coordinate.x.toFixed(2) + ", " + coordinate.y.toFixed(2) + ")</p>";
+            coordinatesList.innerHTML += coordinateHTML;
+        });
+
+        
+    }
 
 
     // Attach click event listener to the canvas
@@ -212,6 +211,7 @@ function showCoordinates(event) {
         if (username) {
             showCoordinates(event);
         }
+        
     });
 
     function drawArrow(fromX, fromY, toX, toY) {
@@ -335,8 +335,17 @@ function showCoordinates(event) {
 
     // Authentication function (replace with your actual authentication logic)
     function authenticate(username, password) {
-        return (username === "admin" && password === "1");
-    }
+    // Define your list of username/password pairs
+    const users = [
+        { username: "admin", password: "1" },
+        { username: "user1", password: "11" },
+        { username: "user2", password: "22" }
+        
+    ];
+
+    // Check if the provided username/password matches any entry in the users array
+    return users.some(user => user.username === username && user.password === password);
+}
 
     // Function to hide the login form after successful login
     function hideLoginForm() {
@@ -429,26 +438,43 @@ function showCoordinates(event) {
         }
     });
 
-    // Function to send coordinates to Google Sheets
-    function sendCoordinatesToGoogleSheets(coordinatesArray, username) {
-        // Send data to Google Sheets endpoint
-        return fetch('/store-coordinates', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username: username, coordinates: coordinatesArray }),
-        })
-        .then(response => {
-            if (response.ok) {
-                console.log('Coordinates sent to Google Sheets:', coordinatesArray);
-            } else {
-                console.error('Failed to send coordinates to Google Sheets');
+    // Function to send coordinates array to Google Sheets
+    async function sendCoordinatesToGoogleSheets(coordinatesArray, username) {
+        var currentDate = new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
+        var dateParts = currentDate.split(", ");
+        var date = dateParts[0];
+        var time = dateParts[1];
+
+        try {
+            // Iterate over each coordinate and send it to Google Sheets
+            for (const coordinate of coordinatesArray) {
+                // Prepare the payload for the current coordinate
+                const payload = {
+                    username: username,
+                    coordinates: [{ x: coordinate.x, y: coordinate.y }],
+                    date: date,
+                    time: time
+                };
+
+                // Send data to Google Sheets endpoint
+                const response = await fetch('/store-coordinates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                // Check if the request was successful
+                if (response.ok) {
+                    console.log('Coordinate sent to Google Sheets:', payload.coordinates[0]);
+                } else {
+                    console.error('Failed to send coordinate to Google Sheets');
+                }
             }
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Error sending coordinates to Google Sheets:', error);
-        });
+        }
     }
 
     // Function to send coordinates to MQTT with delay
