@@ -2,9 +2,9 @@ const express = require('express');
 const { google } = require('googleapis');
 const path = require('path');
 const cors = require('cors');
-const mqtt = require('mqtt'); // Import MQTT module
-const http = require('http'); // Import http module
-const { Server } = require('socket.io'); // Import socket.io
+const mqtt = require('mqtt');
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
 const port = 3000;
@@ -22,11 +22,11 @@ const auth = new google.auth.GoogleAuth({
 const sheets = google.sheets({ version: 'v4', auth });
 
 // MQTT broker connection options
-const brokerUrl = 'mqtt://test.mosquitto.org'; // Update with your MQTT broker URL
+const brokerUrl = 'mqtt://test.mosquitto.org';
 const mqttOptions = {
-  clientId: 'angkaewone', // Client ID
-  clean: true, // Clean session
-  connectTimeout: 4000, // Timeout in milliseconds
+  clientId: 'angkaewone',
+  clean: true,
+  connectTimeout: 4000,
 };
 
 // Connect to MQTT broker
@@ -36,7 +36,7 @@ const mqttClient = mqtt.connect(brokerUrl, mqttOptions);
 mqttClient.on('connect', function () {
   console.log('Connected to MQTT broker');
   // Subscribe to the desired MQTT topic
-  mqttClient.subscribe('robot/command', function (err) {
+  mqttClient.subscribe('angkaewtwo/1', function (err) {
       if (!err) {
           console.log('Subscribed to MQTT topic');
       } else {
@@ -53,50 +53,45 @@ const io = new Server(server);
 
 // Handle incoming MQTT messages
 mqttClient.on('message', function (topic, message) {
-  // Convert message to appropriate format and process it
   console.log('Received message on topic', topic, ':', message.toString());
-  // Broadcast the message to all connected Socket.IO clients
   io.emit('mqttMessage', { topic, message: message.toString() });
 });
 
 mqttClient.on('error', function (error) {
-  // Handle errors
   console.error('MQTT error:', error);
 });
 
-  // Endpoint to handle storing coordinates
-  app.post('/store-coordinates', express.json(), async (req, res) => {
-    const { username, coordinates, date, time } = req.body; // Include username, coordinates, date, and time in the request body
+// Endpoint to handle storing coordinates
+app.post('/store-coordinates', express.json(), async (req, res) => {
+  const { username, coordinates, date, time } = req.body;
 
-    try {
-        // Ensure coordinates is an array and not undefined
-        if (!Array.isArray(coordinates)) {
-            throw new Error('Coordinates must be an array');
-        }
-
-        // Store each coordinate along with username, date, and time in Google Sheets
-        await Promise.all(coordinates.map(async (coord) => {
-            const { x, y } = coord;
-            await storeCoordinates(username, x, y, date, time);
-            sendCoordinatesToMQTT(x, y);
-        }));
-
-        res.sendStatus(200);
-    } catch (error) {
-        console.error('Failed to store coordinates:', error);
-        res.status(500).json({ error: 'Failed to store coordinates' });
+  try {
+    if (!Array.isArray(coordinates)) {
+      throw new Error('Coordinates must be an array');
     }
-  });
+
+    await Promise.all(coordinates.map(async (coord) => {
+      const { x, y } = coord;
+      await storeCoordinates(username, x, y, date, time);
+      sendCoordinatesToMQTT(x, y);
+    }));
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.error('Failed to store coordinates:', error);
+    res.status(500).json({ error: 'Failed to store coordinates' });
+  }
+});
 
 // Function to store coordinates in Google Sheets
 async function storeCoordinates(username, x, y, date, time) {
   try {
-    const response = await sheets.spreadsheets.values.append({
+    await sheets.spreadsheets.values.append({
       spreadsheetId: '175TPRTJi41n7FJHvb_5cejFTJgudx-Wm11284OL_v2A',
-      range: 'Sheet1!A2', // Start cell for appending data
+      range: 'Sheet2!A2',
       valueInputOption: 'RAW',
       requestBody: {
-        values: [[username, date, time, x, y]] // Include username in the values array
+        values: [[username, date, time, x, y]]
       },
     });
     console.log('Coordinates stored successfully');
@@ -106,20 +101,38 @@ async function storeCoordinates(username, x, y, date, time) {
   }
 }
 
-// Updated function to send coordinates to MQTT topic
-function sendCoordinatesToMQTT(x, y) {
-  // Format coordinates as JSON
-  const coordinates = { x: x, y: y };
+// Higher-order function to create a coordinate sender with a counter
+function createCoordinateSender() {
+  let counter = 0;
 
-  // Publish coordinates to MQTT topic
-  mqttClient.publish('angkaewone/1', JSON.stringify(coordinates), function (err) {
-    if (!err) {
-      console.log('Coordinates sent to MQTT topic:', coordinates);
-    } else {
-      console.error('Error publishing coordinates to MQTT:', err);
-    }
-  });
+  return function sendCoordinatesToMQTT(x, y) {
+    const coordinates = { x: x, y: y };
+
+    mqttClient.publish('angkaewone/1', JSON.stringify(coordinates), function (err) {
+      if (!err) {
+        console.log('Coordinates sent to MQTT topic:', coordinates);
+        counter++;
+
+        if (counter === 3) {
+          mqttClient.publish('angkaewone/1', "" , function (err) {
+            if (!err) {
+              console.log('Plus sign sent to MQTT topic');
+            } else {
+              console.error('Error publishing plus sign to MQTT:', err);
+            }
+          });
+
+          counter = 0;
+        }
+      } else {
+        console.error('Error publishing coordinates to MQTT:', err);
+      }
+    });
+  };
 }
+
+// Create an instance of the coordinate sender
+const sendCoordinatesToMQTT = createCoordinateSender();
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
