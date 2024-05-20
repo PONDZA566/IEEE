@@ -12,18 +12,18 @@ function showWelcomeMessage(username) {
 
 function showPoolsize(){
     var poolsize = document.createElement('div');
-    poolsize.textContent = "***The pool size is 4*8 meters***"
+    poolsize.textContent = "***The pool size in this prototype is 4*4 meters***"
     poolsize.style.position = "absolute";
     poolsize.style.top = "600px";
     poolsize.style.left = "75%";
     poolsize.style.transform = "translateX(-50%)";
-    poolsize.style.fontSize = "20px";
+    poolsize.style.fontSize = "17px";
     document.body.appendChild(poolsize);
 }
 
 function showSubscribeMessage(){
     var poolsize = document.createElement('div');
-    poolsize.textContent = "Message from MQTT"
+    poolsize.textContent = "Message from Angkaew-One"
     poolsize.style.position = "absolute";
     poolsize.style.top = "675px";
     poolsize.style.left = "48%";
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Define the size of the canvas and the grid
     var canvasWidth = canvas.width;
     var canvasHeight = canvas.height;
-    var columns = 8;
+    var columns = 4;
     var rows = 4;
 
     // Variables to store the coordinates of the clicked point
@@ -97,8 +97,8 @@ document.addEventListener("DOMContentLoaded", function() {
     function drawImage(x, y) {
         var img = new Image();
         img.onload = function() {
-            var imageWidth = 50; // Adjust as needed
-            var imageHeight = 120; // Adjust as needed
+            var imageWidth = 40; // Adjust as needed
+            var imageHeight = 90; // Adjust as needed
             var imageX = x - imageWidth / 2; // Calculate x-coordinate for centering the image within the circle
             var imageY = y - imageHeight / 2; // Calculate y-coordinate for centering the image within the circle
             ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
@@ -149,61 +149,74 @@ document.addEventListener("DOMContentLoaded", function() {
         image.style.display = "block";
     }
 
-// Function to display coordinates and draw only two boat images from the previous two points
+    function drawNumber(x, y, number) {
+        ctx.font = "36px Arial";
+        ctx.fillStyle = "black";
+        ctx.fillText(number, x + 20, y + 20);
+    }
+
+    // Function to display coordinates and draw only two boat images from the previous two points
     function showCoordinates(event) {
+        if (prevClickedPoints.length >= 3) {
+            alert("You can only mark up to three points.");
+            return;
+        }
+    
         var rect = canvas.getBoundingClientRect();
         clickedX = event.clientX - rect.left;
         clickedY = event.clientY - rect.top;
         var showclickY = clickedY;
         clickedY = Math.abs(clickedY - 400); // Adjusting Y-coordinate
         
+    
         // Add the clicked point to the array of previous points
         prevClickedPoints.push({ x: clickedX, y: clickedY });
-
-        // Limit the number of stored points to 3
-        if (prevClickedPoints.length > 3) {
-            prevClickedPoints.shift(); // Remove the oldest point
-        }
-
+    
         // Clear the canvas before redrawing
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
+    
         // Redraw the grid
         showGrid();
-
-        // Draw boat images for the two most recent points
-        prevClickedPoints.slice(-3).forEach(function(coordinate, index) {
+    
+        // Draw boat images and circles for the three most recent points
+        prevClickedPoints.forEach(function (coordinate, index) {
+            drawImage(coordinate.x, Math.abs(coordinate.y - 400));
+            let color;
             if (index === 0) {
-                drawImage(coordinate.x, Math.abs(coordinate.y - 400));
-                drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), "blue");
-            
-            } else if(index === 1) {
-                drawImage(coordinate.x, Math.abs(coordinate.y - 400));
-                drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), "green");
-            
+                color = "darkblue";
+            } else if (index === 1) {
+                color = "darkgreen";
             } else {
-                drawImage(coordinate.x, Math.abs(coordinate.y - 400));
-                drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), "orange");
-            
+                color = "brown";
             }
-
+            drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), color);
+            drawNumber(coordinate.x, Math.abs(coordinate.y - 400), index + 1); // Draw the number next to the point
         });
-
+    
+        // Draw arrows between the points
+        if (prevClickedPoints.length > 1) {
+            for (let i = 0; i < prevClickedPoints.length - 1; i++) {
+                drawArrow(
+                    prevClickedPoints[i].x,
+                    Math.abs(prevClickedPoints[i].y - 400),
+                    prevClickedPoints[i + 1].x,
+                    Math.abs(prevClickedPoints[i + 1].y - 400)
+                );
+            }
+        }
+    
         // Update the coordinates text content
-        coordinates.textContent = "Coordinates: (" + clickedX.toFixed(2) + ", " + clickedY.toFixed(2) + ")";
-
+        coordinates.textContent = "Coordinates: (" + clickedX.toFixed(2)/100 + ", " + clickedY.toFixed(2)/100 + ")";
+    
         // Display the coordinates in the coordinatesList element
         var coordinatesList = document.getElementById("coordinatesList");
         coordinatesList.innerHTML = "<h3>Stored Coordinates:</h3>";
-        prevClickedPoints.forEach(function(coordinate, index) {
-            var color = index === 0 ? "blue" : index === 1 ? "green" : "orange"; // Choose color based on index
-            var coordinateHTML = "<p style='color: " + color + ";'>Point " + (index + 1) + ": (" + coordinate.x.toFixed(2) + ", " + coordinate.y.toFixed(2) + ")</p>";
+        prevClickedPoints.forEach(function (coordinate, index) {
+            var color = index === 0 ? "darkblue" : index === 1 ? "darkgreen" : "brown"; // Choose color based on index
+            var coordinateHTML = "<p style='color: " + color + ";'>Point " + (index + 1) + ": (" + coordinate.x.toFixed(2)/100 + ", " + coordinate.y.toFixed(2)/100 + ")</p>";
             coordinatesList.innerHTML += coordinateHTML;
         });
-
-        
     }
-
 
     // Attach click event listener to the canvas
     canvas.addEventListener("click", function(event) {
@@ -215,38 +228,31 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     function drawArrow(fromX, fromY, toX, toY) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before redrawing
-        showGrid(); // Redraw the grid
-        firstY = Math.abs(fromY - 400);
-        drawImage(fromX, firstY); // Draw previous circle
-        drawCircle2(fromX, firstY); // Draw previous circle
-    
         // Calculate the angle of the arrow
         var angle = Math.atan2(toY - fromY, toX - fromX);
     
         // Calculate the end point of the arrow, stopping short of the circle's center
-        var arrowLength = Math.sqrt(Math.pow(toX - fromX, 2) + Math.pow(toY - fromY, 2));
-        var radius = 20; // Radius of the red circle plus some padding
+        var radius = 10; // Radius of the circle plus some padding
         var endX = toX - radius * Math.cos(angle);
         var endY = toY - radius * Math.sin(angle);
-        var adjustedEndY = Math.abs(endY - 400); // Adjust endY for the canvas
     
         // Draw the arrow line
         ctx.beginPath();
-        ctx.moveTo(fromX, firstY);
-        ctx.lineTo(endX, adjustedEndY);
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(endX, endY);
         ctx.strokeStyle = 'black'; // Arrow color
         ctx.lineWidth = 3; // Arrow line width
         ctx.stroke();
     
         // Draw arrowhead
-        var headLength = 20; // Length of the arrowhead
+        var headLength = 10; // Length of the arrowhead
         ctx.beginPath();
-        ctx.moveTo(endX, adjustedEndY);
-        ctx.lineTo(endX - headLength * Math.cos(angle - Math.PI / 6), adjustedEndY - headLength * Math.sin(angle - Math.PI / 6));
-        ctx.lineTo(endX, adjustedEndY); // Ensure a single connected path
-        ctx.lineTo(endX - headLength * Math.cos(angle + Math.PI / 6), adjustedEndY - headLength * Math.sin(angle + Math.PI / 6));
-        ctx.stroke();
+        ctx.moveTo(endX, endY);
+        ctx.lineTo(endX - headLength * Math.cos(angle - Math.PI / 6), endY - headLength * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(endX, endY); // Ensure a single connected path
+        ctx.lineTo(endX - headLength * Math.cos(angle + Math.PI / 6), endY - headLength * Math.sin(angle + Math.PI / 6));
+        ctx.fillStyle = 'black'; // Arrowhead color
+        ctx.fill();
     }
     
     // Function to draw X and Y axes
@@ -403,22 +409,34 @@ document.addEventListener("DOMContentLoaded", function() {
         window.location.href = "index.html";
     });
 
-    // Function to send coordinates to MQTT
     function sendCoordinatesToMQTT(client, coordinatesArray) {
         coordinatesArray.forEach(function(coordinate, index) {
             // Format coordinates as JSON
-            const coordinates = { x: coordinate.x, y: coordinate.y };
-
+            const coordinates = { x: coordinate.x, y: coordinate.y  };
+    
             // Publish coordinates to MQTT topic
             client.publish('coordinates', JSON.stringify(coordinates), function(err) {
                 if (!err) {
                     console.log('Coordinates sent to MQTT topic:', coordinates);
+                    
+                    // Check if it is the third coordinate
+                    if ((index + 1) % 3 === 0) {
+                        // Publish '+' sign to MQTT topic
+                        client.publish('coordinates', '+', function(err) {
+                            if (!err) {
+                                console.log('Plus sign sent to MQTT topic');
+                            } else {
+                                console.error('Error publishing plus sign to MQTT:', err);
+                            }
+                        });
+                    }
                 } else {
                     console.error('Error publishing coordinates to MQTT:', err);
                 }
             });
         });
     }
+    
 
     // Send button click event
     sendButton.addEventListener("click", function() {
@@ -451,7 +469,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 // Prepare the payload for the current coordinate
                 const payload = {
                     username: username,
-                    coordinates: [{ x: coordinate.x, y: coordinate.y }],
+                    coordinates: [{ x: coordinate.x/100, y: coordinate.y/100 }],
                     date: date,
                     time: time
                 };

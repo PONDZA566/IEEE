@@ -60,9 +60,9 @@ button:hover {
 
 .image-container {
     position: relative;
-    width: 800px; /* Adjust the width as needed */
+    width: 400px; /* Adjust the width as needed */
     height: 400px; /* Adjust the height as needed */
-    left: 300px;
+    left: 500px;
     top: 70px;
 }
 
@@ -91,14 +91,14 @@ button:hover {
     left: 50%;
     transform: translateX(-50%);
     font-size: 17px; /* Adjust the font size as needed */
-    padding: 5px 10px; /* Add padding */
+    padding: 5px; /* Add padding */
     border-radius: 5px; /* Add border-radius for rounded corners */
 }
 
 #clearButton {
     position: absolute;
     top: 110px; /* Adjust the top position */
-    left: 850px; /* Adjust the right position */
+    left: 450px; /* Adjust the right position */
     width: 150px; /* Set the width */
     height: 40px; /* Set the height */
 }
@@ -107,7 +107,7 @@ button:hover {
     display: none; /* Hide the logout button by default */
     position: absolute;
     top: 50px; /* Adjust the top position */
-    left: 850px; /* Adjust the right position */
+    left: 450px; /* Adjust the right position */
     width: 150px; /* Set the width */
     height: 40px; /* Set the height */
 }
@@ -121,7 +121,7 @@ button:hover {
     display: none; /* Hide the logout button by default */
     position: absolute;
     top: 170px; /* Adjust the top position */
-    left: 850px; /* Adjust the right position */
+    left: 450px; /* Adjust the right position */
     width: 150px; /* Set the width */
     height: 40px; /* Set the height */
 }
@@ -135,7 +135,7 @@ button:hover {
     display: none; /* Hide the logout button by default */
     position: absolute;
     top: 230px; /* Adjust the top position */
-    left: 850px; /* Adjust the right position */
+    left: 450px; /* Adjust the right position */
     width: 170px; /* Set the width */
     height: 40px; /* Set the height */
 }
@@ -146,7 +146,7 @@ button:hover {
 }
 
 #messages {
-    margin-top: 130px;
+    margin-top: 140px;
     margin-left: 547.5px;
     padding: 10px;
     border: 1px solid #ddd;
@@ -165,7 +165,7 @@ button:hover {
 #coordinatesList {
     padding: 10px;
     margin-top: -500px;
-    margin-left: 50px;
+    margin-left: 250px;
     max-height: 200px;
     overflow-y: auto;
 }
