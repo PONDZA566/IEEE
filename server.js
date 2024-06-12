@@ -35,13 +35,22 @@ const mqttClient = mqtt.connect(brokerUrl, mqttOptions);
 // MQTT connection event handlers
 mqttClient.on('connect', function () {
   console.log('Connected to MQTT broker');
-  // Subscribe to the desired MQTT topic
+  
+  // Subscribe to the desired MQTT topics
   mqttClient.subscribe('angkaewtwo/1', function (err) {
       if (!err) {
-          console.log('Subscribed to MQTT topic');
+          console.log('Subscribed to MQTT topic angkaewtwo/1');
       } else {
           console.error('Error subscribing to MQTT topic:', err);
       }
+  });
+
+  mqttClient.subscribe('angkaewthree/1', function (err) {
+    if (!err) {
+        console.log('Subscribed to MQTT topic angkaewthree/1');
+    } else {
+        console.error('Error subscribing to MQTT topic:', err);
+    }
   });
 });
 
@@ -52,9 +61,24 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 // Handle incoming MQTT messages
+// Handle incoming MQTT messages
 mqttClient.on('message', function (topic, message) {
   console.log('Received message on topic', topic, ':', message.toString());
+
+  // Emit the message to all connected clients
   io.emit('mqttMessage', { topic, message: message.toString() });
+
+  // Handle the specific topic for angle
+  if (topic === 'angkaewthree/1') {
+    try {
+      const data = JSON.parse(message.toString());
+      if (data && typeof data.angle === 'number') {
+        io.emit('boatAngle', data.angle);
+      }
+    } catch (error) {
+      console.error('Failed to parse angle message:', error);
+    }
+  }
 });
 
 mqttClient.on('error', function (error) {
@@ -73,7 +97,7 @@ app.post('/store-coordinates', express.json(), async (req, res) => {
     await Promise.all(coordinates.map(async (coord) => {
       const { x, y } = coord;
       await storeCoordinates(username, x, y, date, time);
-      sendCoordinatesToMQTT(x, y);
+      sendCoordinatesToMQTT((x*100),(y*100));
     }));
 
     res.sendStatus(200);
@@ -106,24 +130,24 @@ function createCoordinateSender() {
   let counter = 0;
 
   return function sendCoordinatesToMQTT(x, y) {
-    const coordinates = { x: x, y: y };
+    const coordinates = {  x: parseInt(x, 10), y: parseInt(y, 10) };
 
     mqttClient.publish('angkaewone/1', JSON.stringify(coordinates), function (err) {
       if (!err) {
         console.log('Coordinates sent to MQTT topic:', coordinates);
         counter++;
 
-        if (counter === 3) {
-          mqttClient.publish('angkaewone/1', "" , function (err) {
-            if (!err) {
-              console.log('Plus sign sent to MQTT topic');
-            } else {
-              console.error('Error publishing plus sign to MQTT:', err);
-            }
-          });
+        // if (counter === 3) {
+        //   mqttClient.publish('angkaewone/1', "" , function (err) {
+        //     if (!err) {
+        //       console.log('Plus sign sent to MQTT topic');
+        //     } else {
+        //       console.error('Error publishing plus sign to MQTT:', err);
+        //     }
+        //   });
 
-          counter = 0;
-        }
+        //   counter = 0;
+        // }
       } else {
         console.error('Error publishing coordinates to MQTT:', err);
       }
