@@ -103,6 +103,18 @@ button:hover {
     height: 40px; /* Set the height */
 }
 
+#clearPreviousButton {
+    position: absolute;
+    top: 290px; /* Adjust the top position */
+    left: 450px; /* Adjust the right position */
+    width: 170px; /* Set the width */
+    height: 40px; /* Set the height */
+}
+
+#clearPreviousButton:hover {
+    background-color: #e0e0e0;
+}
+
 #sendButton {
     display: none; /* Hide the logout button by default */
     position: absolute;
@@ -114,7 +126,7 @@ button:hover {
 
 /* Style for the logout button on hover */
 #sendButton:hover {
-    background-color: #5b2dc6; /* Darker red background color on hover */
+    background-color: #0056b3; /* Darker red background color on hover */
 }
 
 #logoutButton {
@@ -128,7 +140,7 @@ button:hover {
 
 /* Style for the logout button on hover */
 #logoutButton:hover {
-    background-color: #5b2dc6; /* Darker red background color on hover */
+    background-color: #0056b3; /* Darker red background color on hover */
 }
 
 #googleSheetsButton {
@@ -142,7 +154,7 @@ button:hover {
 
 /* Style for the logout button on hover */
 #googleSheetsButton:hover {
-    background-color: #4ba2e1; /* Darker red background color on hover */
+    background-color: #0056b3; /* Darker red background color on hover */
 }
 
 #messages {

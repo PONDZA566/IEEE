@@ -11,14 +11,34 @@ function showWelcomeMessage(username) {
 }
 
 function showPoolsize(){
+    // Create the first div for the pool size
     var poolsize = document.createElement('div');
-    poolsize.textContent = "***The pool size in this prototype is 4*4 meters***"
+    poolsize.textContent = "The pool size in this prototype is 4 x 4 square meter."
     poolsize.style.position = "absolute";
-    poolsize.style.top = "600px";
-    poolsize.style.left = "75%";
+    poolsize.style.top = "575px";
+    poolsize.style.left = "74.5%";
     poolsize.style.transform = "translateX(-50%)";
-    poolsize.style.fontSize = "17px";
+    poolsize.style.fontSize = "16px";
     document.body.appendChild(poolsize);
+
+    // Create the second div for the additional phrase
+    var dimensions = document.createElement('div');
+    dimensions.textContent = "All dimensions are in meters.";
+    dimensions.style.position = "absolute";
+    dimensions.style.top = "625px"; // Adjust the position to be below the first text
+    dimensions.style.left = "69.5%";
+    dimensions.style.transform = "translateX(-50%)";
+    dimensions.style.fontSize = "17px";
+    document.body.appendChild(dimensions);
+
+    var scale = document.createElement('div');
+    scale.textContent = "Define 1 block as 1 x 1 square meter.";
+    scale.style.position = "absolute";
+    scale.style.top = "600px"; // Adjust the position to be below the first text
+    scale.style.left = "71%";
+    scale.style.transform = "translateX(-50%)";
+    scale.style.fontSize = "16px";
+    document.body.appendChild(scale);
 }
 
 function showSubscribeMessage(){
@@ -44,6 +64,7 @@ document.addEventListener("DOMContentLoaded", function() {
     var googleSheetsButton = document.getElementById("googleSheetsButton"); // Added this line
     var username;
     var password;
+    var boatAngle = 0; // Initialize boat angle
 
     // Variables to store previous coordinates
     var prevClickedX = -1;
@@ -80,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function() {
             var x = i * cellWidth;
             ctx.beginPath();
             ctx.moveTo(x, 0);
-            ctx.lineTo(x, canvasHeight);
+            ctx.lineTo(x, canvasHeight+1);
             ctx.stroke();
         }
 
@@ -89,19 +110,34 @@ document.addEventListener("DOMContentLoaded", function() {
             var y = j * cellHeight;
             ctx.beginPath();
             ctx.moveTo(0, y);
-            ctx.lineTo(canvasWidth, y);
+            ctx.lineTo(canvasWidth+1, y);
             ctx.stroke();
         }
     }
 
-    function drawImage(x, y) {
+    
+    function drawImage(x, y, angle) {
         var img = new Image();
         img.onload = function() {
-            var imageWidth = 40; // Adjust as needed
-            var imageHeight = 90; // Adjust as needed
+            var imageWidth = 90; // Adjust as needed
+            var imageHeight = 40; // Adjust as needed
             var imageX = x - imageWidth / 2; // Calculate x-coordinate for centering the image within the circle
             var imageY = y - imageHeight / 2; // Calculate y-coordinate for centering the image within the circle
-            ctx.drawImage(img, imageX, imageY, imageWidth, imageHeight);
+            
+            // Save the current canvas state
+            ctx.save();
+            
+            // Move the canvas origin to the center of the image
+            ctx.translate(x, y);
+            
+            // Rotate the canvas
+            ctx.rotate(angle * Math.PI / 180);
+            
+            // Draw the image centered on the new origin
+            ctx.drawImage(img, -imageWidth / 2, -imageHeight / 2, imageWidth, imageHeight);
+            
+            // Restore the canvas to its previous state
+            ctx.restore();
         };
         img.src = 'boat.png'; // Replace 'path_to_your_image' with the path to your image file
     }
@@ -150,15 +186,16 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function drawNumber(x, y, number) {
-        ctx.font = "36px Arial";
+        ctx.font = "30px Arial";
         ctx.fillStyle = "black";
-        ctx.fillText(number, x + 20, y + 20);
+        var textY = y + 45; // Adjust 60 as needed to position the text below the circle
+        ctx.fillText(number, x - 10, textY); // Adjust x - 10 to center the text horizontally
     }
 
     // Function to display coordinates and draw only two boat images from the previous two points
     function showCoordinates(event) {
-        if (prevClickedPoints.length >= 3) {
-            alert("You can only mark up to three points.");
+        if (prevClickedPoints.length >= 1) {
+            alert("You can only mark one points.");
             return;
         }
     
@@ -183,7 +220,7 @@ document.addEventListener("DOMContentLoaded", function() {
             drawImage(coordinate.x, Math.abs(coordinate.y - 400));
             let color;
             if (index === 0) {
-                color = "darkblue";
+                color = "red";
             } else if (index === 1) {
                 color = "darkgreen";
             } else {
@@ -193,17 +230,17 @@ document.addEventListener("DOMContentLoaded", function() {
             drawNumber(coordinate.x, Math.abs(coordinate.y - 400), index + 1); // Draw the number next to the point
         });
     
-        // Draw arrows between the points
-        if (prevClickedPoints.length > 1) {
-            for (let i = 0; i < prevClickedPoints.length - 1; i++) {
-                drawArrow(
-                    prevClickedPoints[i].x,
-                    Math.abs(prevClickedPoints[i].y - 400),
-                    prevClickedPoints[i + 1].x,
-                    Math.abs(prevClickedPoints[i + 1].y - 400)
-                );
-            }
-        }
+        // // Draw arrows between the points
+        // if (prevClickedPoints.length > 1) {
+        //     for (let i = 0; i < prevClickedPoints.length - 1; i++) {
+        //         drawArrow(
+        //             prevClickedPoints[i].x,
+        //             Math.abs(prevClickedPoints[i].y - 400),
+        //             prevClickedPoints[i + 1].x,
+        //             Math.abs(prevClickedPoints[i + 1].y - 400)
+        //         );
+        //     }
+        // }
     
         // Update the coordinates text content
         coordinates.textContent = "Coordinates: (" + clickedX.toFixed(2)/100 + ", " + clickedY.toFixed(2)/100 + ")";
@@ -212,7 +249,7 @@ document.addEventListener("DOMContentLoaded", function() {
         var coordinatesList = document.getElementById("coordinatesList");
         coordinatesList.innerHTML = "<h3>Stored Coordinates:</h3>";
         prevClickedPoints.forEach(function (coordinate, index) {
-            var color = index === 0 ? "darkblue" : index === 1 ? "darkgreen" : "brown"; // Choose color based on index
+            var color = index === 0 ? "red" : index === 1 ? "darkgreen" : "brown"; // Choose color based on index
             var coordinateHTML = "<p style='color: " + color + ";'>Point " + (index + 1) + ": (" + coordinate.x.toFixed(2)/100 + ", " + coordinate.y.toFixed(2)/100 + ")</p>";
             coordinatesList.innerHTML += coordinateHTML;
         });
@@ -267,7 +304,7 @@ document.addEventListener("DOMContentLoaded", function() {
         ctx.stroke();
 
         // Draw X-axis arrowhead
-        var arrowSize = 20;
+        var arrowSize = 26;
         ctx.beginPath();
         ctx.moveTo(canvasWidth, canvasHeight); // Arrow base
         ctx.lineTo(canvasWidth - arrowSize, canvasHeight - arrowSize / 2); // Left side
@@ -294,7 +331,7 @@ document.addEventListener("DOMContentLoaded", function() {
         ctx.fill();
 
         // Label for X-axis
-        ctx.font = '18px Arial';
+        ctx.font = '32px Arial';
         ctx.fillStyle = '#000'; // Black color
         ctx.fillText('X', canvasWidth - 15, canvasHeight - 10);
 
@@ -304,6 +341,76 @@ document.addEventListener("DOMContentLoaded", function() {
         ctx.fillText('Y', 0, 0); // Draw the Y-axis label
         ctx.restore(); // Restore the saved state of the canvas
     }
+
+    // Function to clear the most recent point
+    // function clearPreviousPoint() {
+    //     if (prevClickedPoints.length > 0) {
+    //         // Remove the most recent point from the array
+    //         prevClickedPoints.pop();
+
+    //         // Clear the canvas before redrawing
+    //         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    //         // Redraw the grid
+    //         showGrid();
+
+    //         // Redraw the remaining points
+    //         prevClickedPoints.forEach(function (coordinate, index) {
+    //             drawImage(coordinate.x, Math.abs(coordinate.y - 400));
+    //             let color;
+    //             if (index === 0) {
+    //                 color = "darkblue";
+    //             } else if (index === 1) {
+    //                 color = "darkgreen";
+    //             } else {
+    //                 color = "brown";
+    //             }
+    //             drawCircle3(coordinate.x, Math.abs(coordinate.y - 400), color);
+    //             drawNumber(coordinate.x, Math.abs(coordinate.y - 400), index + 1);
+    //         });
+
+    //         // Redraw arrows between the remaining points
+    //         if (prevClickedPoints.length > 1) {
+    //             for (let i = 0; i < prevClickedPoints.length - 1; i++) {
+    //                 drawArrow(
+    //                     prevClickedPoints[i].x,
+    //                     Math.abs(prevClickedPoints[i].y - 400),
+    //                     prevClickedPoints[i + 1].x,
+    //                     Math.abs(prevClickedPoints[i + 1].y - 400)
+    //                 );
+    //             }
+    //         }
+
+    //         // Update the coordinates list
+    //         var coordinatesList = document.getElementById("coordinatesList");
+    //         coordinatesList.innerHTML = "<h3>Stored Coordinates:</h3>";
+    //         prevClickedPoints.forEach(function (coordinate, index) {
+    //             var color = index === 0 ? "darkblue" : index === 1 ? "darkgreen" : "brown";
+    //             var coordinateHTML = "<p style='color: " + color + ";'>Point " + (index + 1) + ": (" + coordinate.x.toFixed(2)/100 + ", " + coordinate.y.toFixed(2)/100 + ")</p>";
+    //             coordinatesList.innerHTML += coordinateHTML;
+    //         });
+
+    //         // Clear the coordinates text if no points are left
+    //         if (prevClickedPoints.length === 0) {
+    //             coordinates.textContent = "";
+    //         }
+    //     }
+    // }
+
+    // // Add the event listener for the clear previous button
+    // var clearPreviousButton = document.getElementById("clearPreviousButton");
+    // clearPreviousButton.addEventListener("click", clearPreviousPoint);
+
+    // // Function to show the clear previous button
+    // function showClearPreviousButton() {
+    //     clearPreviousButton.style.display = "block";
+    // }
+
+    // Function to hide the clear previous button
+    // function hideClearPreviousButton() {
+    //     clearPreviousButton.style.display = "none";
+    // }
+
 
     
     // Login form submission
@@ -325,6 +432,7 @@ document.addEventListener("DOMContentLoaded", function() {
             showLogoutButton(); // Call function to show the logout button
             showSendButton(); // Call function to show the send button
             showGoogleSheetsButton(); // Call function to show the Google Sheets button
+            //showClearPreviousButton();
         } else {
             alert("Invalid username or password. Please try again.");
         }
@@ -440,9 +548,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Send button click event
     sendButton.addEventListener("click", function() {
-        if (prevClickedPoints.length >= 3) { // Check if at least three coordinates are selected
+        if (prevClickedPoints.length >= 1) { // Check if at least three coordinates are selected
             // Extract the first three coordinates
-            var coordinatesArray = prevClickedPoints.slice(0, 3).map(function(coordinate) {
+            var coordinatesArray = prevClickedPoints.slice(0, 1).map(function(coordinate) {
                 return { x: coordinate.x, y: coordinate.y };
             });
 
@@ -452,7 +560,7 @@ document.addEventListener("DOMContentLoaded", function() {
             // Send coordinates to MQTT with delay
             sendCoordinatesToMQTTWithDelay(client, coordinatesArray, 0);
         } else {
-            alert("Please select at least three coordinates before sending.");
+            alert("Please select at least one coordinate before sending.");
         }
     });
 
@@ -519,5 +627,12 @@ document.addEventListener("DOMContentLoaded", function() {
 socket.on('connect_error', function(error) {
     console.error('Socket.IO error:', error);
 });
+
+socket.on('boatAngle', function(angle) {
+    // Update the boat angle here
+    console.log('Received boat angle:', angle);
+    // Call a function to update the boat image with the received angle
+    drawImage(x,y,angle);
+  });
 
 });
